@@ -711,6 +711,7 @@ class Screen : public concurrency::OSThread
             uint8_t wifi = 255;
             uint8_t deviceFocused = 255;
             uint8_t system = 255;
+            uint8_t weather = 255;
             uint8_t gps = 255;
             uint8_t home = 255;
             uint8_t textMessage = 255;
@@ -754,6 +755,7 @@ class Screen : public concurrency::OSThread
 #endif
         bool lora = false;
         bool show_favorites = false;
+        bool weather = false;
         bool chirpy = true;
     } hiddenFrames;
 

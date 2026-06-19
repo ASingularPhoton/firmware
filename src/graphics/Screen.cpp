@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "draw/UIRenderer.h"
 #include "graphics/TFTColorRegions.h"
 #include "modules/CannedMessageModule.h"
+#include "modules/FavoriteWeather/FavoriteWeatherModule.h"
 #include "security/LockdownDisplay.h"
 
 #if !MESHTASTIC_EXCLUDE_GPS
@@ -1356,6 +1357,11 @@ void Screen::setFrames(FrameFocus focus)
         normalFrames[numframes++] = graphics::DebugRenderer::drawSystemScreen;
         indicatorIcons.push_back(icon_system);
     }
+    if (!hiddenFrames.weather) {
+        fsi.positions.weather = numframes;
+        normalFrames[numframes++] = FavoriteWeatherModule::drawFrame;
+        indicatorIcons.push_back(icon_compass);
+    }
 #if !defined(DISPLAY_CLOCK_FRAME)
     if (!hiddenFrames.clock) {
         fsi.positions.clock = numframes;
@@ -1618,6 +1624,7 @@ enum FrameVisBit : uint8_t {
     FVBIT_LORA = 13,
     FVBIT_SHOW_FAVORITES = 14,
     FVBIT_CHIRPY = 15,
+    FVBIT_WEATHER = 16,
 };
 
 struct __attribute__((packed)) FrameVisFile {
@@ -1666,6 +1673,7 @@ uint32_t Screen::packHiddenFrames() const
 #endif
     setBit(mask, FVBIT_LORA, hiddenFrames.lora);
     setBit(mask, FVBIT_SHOW_FAVORITES, hiddenFrames.show_favorites);
+    setBit(mask, FVBIT_WEATHER, hiddenFrames.weather);
     setBit(mask, FVBIT_CHIRPY, hiddenFrames.chirpy);
     return mask;
 }
@@ -1695,6 +1703,7 @@ void Screen::applyHiddenFramesMask(uint32_t mask)
 #endif
     hiddenFrames.lora = getBit(mask, FVBIT_LORA);
     hiddenFrames.show_favorites = getBit(mask, FVBIT_SHOW_FAVORITES);
+    hiddenFrames.weather = getBit(mask, FVBIT_WEATHER);
     hiddenFrames.chirpy = getBit(mask, FVBIT_CHIRPY);
 }
 
@@ -1853,6 +1862,8 @@ void Screen::logFrameChange(const char *reason, uint8_t targetIdx)
         name = "nodelist_bearings";
     else if (targetIdx == p.system)
         name = "system";
+    else if (targetIdx == p.weather)
+        name = "weather";
     else if (targetIdx == p.gps)
         name = "gps";
     else if (targetIdx == p.lora)
