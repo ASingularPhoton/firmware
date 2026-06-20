@@ -1357,11 +1357,10 @@ void Screen::setFrames(FrameFocus focus)
         normalFrames[numframes++] = graphics::DebugRenderer::drawSystemScreen;
         indicatorIcons.push_back(icon_system);
     }
-    if (!hiddenFrames.weather) {
-        fsi.positions.weather = numframes;
-        normalFrames[numframes++] = FavoriteWeatherModule::drawFrame;
-        indicatorIcons.push_back(icon_compass);
-    }
+    // Always include the weather frame.
+    fsi.positions.weather = numframes;
+    normalFrames[numframes++] = FavoriteWeatherModule::drawFrame;
+    indicatorIcons.push_back(icon_compass);
 #if !defined(DISPLAY_CLOCK_FRAME)
     if (!hiddenFrames.clock) {
         fsi.positions.clock = numframes;
@@ -1460,7 +1459,14 @@ void Screen::setFrames(FrameFocus focus)
     // Focus on a specific frame, in the frame set we just created
     switch (focus) {
     case FOCUS_DEFAULT:
-        ui->switchToFrame(fsi.positions.deviceFocused);
+        // Prefer showing the weather frame at boot when it is enabled.
+        if (fsi.positions.weather != 255) {
+            ui->switchToFrame(fsi.positions.weather);
+        } else if (fsi.positions.firstFavorite != 255) {
+            ui->switchToFrame(fsi.positions.firstFavorite);
+        } else {
+            ui->switchToFrame(fsi.positions.deviceFocused);
+        }
         break;
     case FOCUS_FAULT:
         ui->switchToFrame(fsi.positions.fault);
@@ -1586,6 +1592,8 @@ bool Screen::isFrameHidden(const std::string &frameName) const
         return hiddenFrames.clock;
     if (frameName == "show_favorites")
         return hiddenFrames.show_favorites;
+    if (frameName == "weather")
+        return hiddenFrames.weather;
     if (frameName == "chirpy")
         return hiddenFrames.chirpy;
 

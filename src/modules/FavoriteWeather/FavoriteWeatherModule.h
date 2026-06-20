@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics/OLEDDisplayUi.h"
+#include <OLEDDisplayUi.h>
 #include "mesh/NodeDB.h"
 
 class FavoriteWeatherModule

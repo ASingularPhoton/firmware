@@ -8,8 +8,11 @@
 extern NodeDB *nodeDB;
 
 // Replace with your weather node ID
-static constexpr uint32_t FAVORITE_NODE =
-    0x12345678;
+// Replace with your weather node ID. If left as the sentinel value
+// `AUTO_SELECT_FAVORITE`, the module will auto-pick the first favorite
+// node or first peer that provides environment telemetry.
+static constexpr uint32_t AUTO_SELECT_FAVORITE = 0x12345678;
+static constexpr uint32_t FAVORITE_NODE = AUTO_SELECT_FAVORITE;
 
 int FavoriteWeatherModule::drawFrame(
     OLEDDisplay *display,
@@ -19,14 +22,36 @@ int FavoriteWeatherModule::drawFrame(
 {
     meshtastic_EnvironmentMetrics env;
 
-    if (!nodeDB->copyNodeEnvironment(FAVORITE_NODE, env))
-    {
-        display->setTextAlignment(TEXT_ALIGN_LEFT);
-        display->drawString(
-            x + 5,
-            y + 20,
-            "No Weather Data");
+    uint32_t nodeToUse = FAVORITE_NODE;
 
+    // If user left the sentinel, try to auto-select a favorite node or any
+    // peer that has environment telemetry available.
+    if (nodeToUse == AUTO_SELECT_FAVORITE) {
+        const size_t num = nodeDB->getNumMeshNodes();
+        for (size_t i = 0; i < num; ++i) {
+            const meshtastic_NodeInfoLite *n = nodeDB->getMeshNodeByIndex(i);
+            if (!n)
+                continue;
+            // skip self
+            if (n->num == nodeDB->getNodeNum())
+                continue;
+            // prefer nodes the user marked as favorite
+            if (nodeInfoLiteIsFavorite(n)) {
+                nodeToUse = n->num;
+                break;
+            }
+            // otherwise remember the first node that actually has env data
+            meshtastic_EnvironmentMetrics tmp;
+            if (nodeDB->copyNodeEnvironment(n->num, tmp)) {
+                nodeToUse = n->num;
+                break;
+            }
+        }
+    }
+
+    if (!nodeDB->copyNodeEnvironment(nodeToUse, env)) {
+        display->setTextAlignment(TEXT_ALIGN_LEFT);
+        display->drawString(x + 5, y + 20, "No Weather Data");
         return 0;
     }
 

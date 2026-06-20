@@ -16,7 +16,7 @@
 #include "graphics/niche/InkHUD/Applets/User/Positions/PositionsApplet.h"
 #include "graphics/niche/InkHUD/Applets/User/RecentsList/RecentsListApplet.h"
 #include "graphics/niche/InkHUD/Applets/User/ThreadedMessage/ThreadedMessageApplet.h"
-
+#include "graphics/niche/InkHUD/Applets/User/FavoriteWeather/FavoriteWeatherApplet.h"
 // Shared NicheGraphics components
 // --------------------------------
 #include "graphics/niche/Drivers/EInk/E0213A367.h"
@@ -83,6 +83,7 @@ void setupNicheGraphics()
 
     // Pick applets
     // Note: order of applets determines priority of "auto-show" feature
+    inkhud->addApplet("Favorite Weather", new InkHUD::FavoriteWeatherApplet, true, true, 0);
     inkhud->addApplet("All Messages", new InkHUD::AllMessageApplet, true, true); // Activated, autoshown
     inkhud->addApplet("DMs", new InkHUD::DMApplet);                              // -
     inkhud->addApplet("Channel 0", new InkHUD::ThreadedMessageApplet(0));        // -
@@ -90,10 +91,11 @@ void setupNicheGraphics()
     inkhud->addApplet("Positions", new InkHUD::PositionsApplet, true);           // Activated
     inkhud->addApplet("Favorites Map", new InkHUD::FavoritesMapApplet);          // -
     inkhud->addApplet("Recents List", new InkHUD::RecentsListApplet);            // -
-    inkhud->addApplet("Heard", new InkHUD::HeardApplet, true, false, 0);         // Activated, not autoshown, default on tile 0
+    inkhud->addApplet("Heard", new InkHUD::HeardApplet, true, false, 1);         // Activated, not autoshown, default on tile 1
 
     // Start running InkHUD
     inkhud->begin();
+    inkhud->showApplet(0);
 
     // Buttons
     // --------------------------
